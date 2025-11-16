@@ -18,14 +18,18 @@ unity = UnityInterface("127.0.0.1");
 % Define tasks
 %task_vehicle = TaskVehicle();       
 %task_tool    = TaskTool();
-task_position    = TaskPosition();
+%task_position    = TaskPosition();
 task_horizontal    = TaskHorizontal();
-task_min_altitude    = TaskMinAltitude();
-task_set = {task_min_altitude, task_position, task_horizontal};
+%task_min_altitude    = TaskMinAltitudeV2();
+task_set = {sdtask_horizontal};
+%task_set_2 = {task_land};
+%unified_task_list = {task_min_altitude, task_land, task_position, task_horizontal};
 
 % Define actions and add to ActionManager
 actionManager = ActionManager();
-actionManager.addAction(task_set);  % action 1
+actionManager.addAction(task_set, "safe navigation");  % action 1
+%actionManager.addAction(task_set_2, "landing");  % action 2
+%actionManager.addUnifiedList(unified_task_list);
 
 % Define desired positions and orientations (world frame)
 w_arm_goal_position = [12.2025, 37.3748, -39.8860]';
