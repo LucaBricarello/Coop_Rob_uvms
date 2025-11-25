@@ -18,23 +18,25 @@ unity = UnityInterface("127.0.0.1");
 % Define tasks
 %task_vehicle = TaskVehicle();       
 %task_tool    = TaskTool();
-%task_position    = TaskPosition();
-task_horizontal    = TaskHorizontal();
-%task_min_altitude    = TaskMinAltitudeV2();
-task_set = {sdtask_horizontal};
-%task_set_2 = {task_land};
-%unified_task_list = {task_min_altitude, task_land, task_position, task_horizontal};
+task_position        = TaskPosition();
+task_horizontal_1    = TaskHorizontal();
+task_horizontal_2    = TaskHorizontal();
+task_min_altitude    = TaskMinAltitudeV2();
+task_land            = TaskLand();
+task_set = {task_min_altitude, task_horizontal_1, task_position};
+task_set_2 = {task_horizontal_2, task_land};
+unified_task_list = {task_min_altitude, task_horizontal_1, task_horizontal_2, task_land, task_position};
 
 % Define actions and add to ActionManager
 actionManager = ActionManager();
 actionManager.addAction(task_set, "safe navigation");  % action 1
-%actionManager.addAction(task_set_2, "landing");  % action 2
-%actionManager.addUnifiedList(unified_task_list);
+actionManager.addAction(task_set_2, "landing");  % action 2
+actionManager.addUnifiedList(unified_task_list);
 
 % Define desired positions and orientations (world frame)
 w_arm_goal_position = [12.2025, 37.3748, -39.8860]';
 w_arm_goal_orientation = [0, pi, pi/2];
-w_vehicle_goal_position = [10.5, 37.5, -39.9]';
+w_vehicle_goal_position = [50 -12.5 -33]';
 w_vehicle_goal_orientation = [0, 0, 0];
 
 % Set goals in the robot model
@@ -45,6 +47,14 @@ logger = SimulationLogger(ceil(endTime/dt)+1, robotModel, task_set);
 
 % Main simulation loop
 for step = 1:sim.maxSteps
+
+    % --------- Mission planning part -------------
+    % check if Action "safe navigation" task defining action error is lower
+    % then a certain threshold
+    if task_position.error < 0.1
+        actionManager.setCurrentAction("landing");
+    end
+    % ---------------------------------------------
     
     % print position on screen
     disp(robotModel.eta)
@@ -53,7 +63,7 @@ for step = 1:sim.maxSteps
     robotModel.altitude = unity.receiveAltitude(robotModel);
 
     % 2. Compute control commands for current action
-    [v_nu, q_dot] = actionManager.computeICAT(robotModel);
+    [v_nu, q_dot] = actionManager.computeICAT(robotModel, dt);
 
     % 3. Step the simulator (integrate velocities)
     sim.step(v_nu, q_dot);

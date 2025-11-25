@@ -54,8 +54,8 @@ classdef ActionManager < handle
         function [v_nu, qdot] = computeICAT(obj, robot, dt)
             % Get current action
             tasks = obj.unified_list;
-            tasks_curr_actions = obj.actions{obj.currentAction};
-            tasks_prev_actions = obj.actions{obj.previousAction};
+            tasks_curr_action = obj.actions{obj.currentAction};
+            tasks_prev_action = obj.actions{obj.previousAction};
 
             % 1. Update references, Jacobians, activations off all tasks
             for i = 1:length(obj.unified_list)
@@ -72,55 +72,20 @@ classdef ActionManager < handle
                 obj.a_prev = DecreasingBellShapedFunction(0, 1, 0, 1, obj.time);
             end
 
-%            % 2. Perform ICAT (task-priority inverse kinematics)
-%            ydotbar = zeros(13,1);
-%            Qp = eye(13);
-%            for i = 1:length(tasks)
-%                disp(tasks(i))
-%                disp(tasks_curr_actions)
-%                if ismember(tasks(i), tasks_curr_actions) && ismember(tasks(i), tasks_prev_actions)
-%                    [Qp, ydotbar] = iCAT_task(tasks{i}.A * 1, tasks{i}.J, ...
-%                                               Qp, ydotbar, tasks{i}.xdotbar, ...
-%                                               1e-4, 0.01, 10);
-%
-%                elseif ismember(tasks(i), tasks_curr_actions)
-%                    [Qp, ydotbar] = iCAT_task(tasks{i}.A * obj.a_curr, tasks{i}.J, ...
-%                                               Qp, ydotbar, tasks{i}.xdotbar, ...
-%                                               1e-4, 0.01, 10);
-%
-%                elseif ismember(tasks(i), tasks_prev_actions)
-%                    [Qp, ydotbar] = iCAT_task(tasks{i}.A * obj.a_prev, tasks{i}.J, ...
-%                                               Qp, ydotbar, tasks{i}.xdotbar, ...
-%                                               1e-4, 0.01, 10);
-%                end
-%            end
-
             % 2. Perform ICAT (task-priority inverse kinematics)
             ydotbar = zeros(13,1);
             Qp = eye(13);
-            
             for i = 1:length(tasks)
-                % 1. Extract the current task object handle (use curly braces)
-                current_task_handle = tasks{i}; 
-                
-                % 2. Check if this handle exists in the current or previous action lists
-                % We iterate through the cells and compare handles using '=='
-                is_in_curr = any(cellfun(@(x) x == current_task_handle, tasks_curr_actions));
-                is_in_prev = any(cellfun(@(x) x == current_task_handle, tasks_prev_actions));
-            
-                % 3. Apply logic based on booleans
-                if is_in_curr && is_in_prev
-                    % Task is in both: Full activation (or specific transition logic)
+                if ismember(tasks(i), obj.currentAction) && ismember(tasks(i), obj.previousAction)
                     [Qp, ydotbar] = iCAT_task(tasks{i}.A * 1, tasks{i}.J, ...
                                                Qp, ydotbar, tasks{i}.xdotbar, ...
                                                1e-4, 0.01, 10);
-                elseif is_in_curr
-                    % Task is entering: Increasing activation
+                elseif ismember(tasks(i), obj.currentAction)
                     [Qp, ydotbar] = iCAT_task(tasks{i}.A * obj.a_curr, tasks{i}.J, ...
                                                Qp, ydotbar, tasks{i}.xdotbar, ...
                                                1e-4, 0.01, 10);
-                elseif is_in_prev
-                    % Task is leaving: Decreasing activation
+
+                elseif ismember(tasks(i), obj.previousAction)
                     [Qp, ydotbar] = iCAT_task(tasks{i}.A * obj.a_prev, tasks{i}.J, ...
                                                Qp, ydotbar, tasks{i}.xdotbar, ...
                                                1e-4, 0.01, 10);
@@ -149,9 +114,7 @@ classdef ActionManager < handle
 
 
         function setCurrentAction(obj, name_of_action)
-            actionIndex = find(strcmp(name_of_action, string(obj.actions_name)));
-            disp(obj.actions_name)
-            disp(actionIndex)
+            actionIndex = find(strcmp(name_of_action, obj.actions_name));
             % Switch to a different action
             if actionIndex >= 1 && actionIndex <= length(obj.actions)
                 % first save the previous action index
