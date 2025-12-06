@@ -22,33 +22,33 @@ classdef ActionManager < handle
             obj.unified_list = unified_list_input;
         end
 
-%        function [v_nu, qdot] = computeICAT(obj, robot)
-%            % Get current action
-%            tasks = obj.actions{obj.currentAction};
-%
-%            % 1. Update references, Jacobians, activations
-%            for i = 1:length(tasks)
-%                tasks{i}.updateReference(robot);
-%                tasks{i}.updateJacobian(robot);
-%                tasks{i}.updateActivation(robot);
-%            end
-%
-%            % 2. Perform ICAT (task-priority inverse kinematics)
-%            ydotbar = zeros(13,1);
-%            Qp = eye(13);
-%            for i = 1:length(tasks)
-%                [Qp, ydotbar] = iCAT_task(tasks{i}.A, tasks{i}.J, ...
-%                                           Qp, ydotbar, tasks{i}.xdotbar, ...
-%                                           1e-4, 0.01, 10);
-%            end
-%
-%            % 3. Last task: residual damping
-%            [~, ydotbar] = iCAT_task(eye(13), eye(13), Qp, ydotbar, zeros(13,1), 1e-4, 0.01, 10);
-%
-%            % 4. Split velocities for vehicle and arm
-%            qdot = ydotbar(1:7);
-%            v_nu = ydotbar(8:13); % projected on the vehicle frame
-%        end
+       function [v_nu, qdot] = computeICAT2(obj, robot)
+           % Get current action
+           tasks = obj.actions{obj.currentAction};
+
+           % 1. Update references, Jacobians, activations
+           for i = 1:length(tasks)
+               tasks{i}.updateReference(robot);
+               tasks{i}.updateJacobian(robot);
+               tasks{i}.updateActivation(robot);
+           end
+
+           % 2. Perform ICAT (task-priority inverse kinematics)
+           ydotbar = zeros(13,1);
+           Qp = eye(13);
+           for i = 1:length(tasks)
+               [Qp, ydotbar] = iCAT_task(tasks{i}.A, tasks{i}.J, ...
+                                          Qp, ydotbar, tasks{i}.xdotbar, ...
+                                          1e-4, 0.01, 10);
+           end
+
+           % 3. Last task: residual damping
+           [~, ydotbar] = iCAT_task(eye(13), eye(13), Qp, ydotbar, zeros(13,1), 1e-4, 0.01, 10);
+
+           % 4. Split velocities for vehicle and arm
+           qdot = ydotbar(1:7);
+           v_nu = ydotbar(8:13); % projected on the vehicle frame
+       end
 
 
         function [v_nu, qdot] = computeICAT(obj, robot, dt)
@@ -107,24 +107,25 @@ classdef ActionManager < handle
                 % We iterate through the cells and compare handles using '=='
                 is_in_curr = any(cellfun(@(x) x == current_task_handle, tasks_curr_actions));
                 is_in_prev = any(cellfun(@(x) x == current_task_handle, tasks_prev_actions));
-            
+                
+                a = 1;
                 % 3. Apply logic based on booleans
                 if is_in_curr && is_in_prev
                     % Task is in both: Full activation (or specific transition logic)
-                    [Qp, ydotbar] = iCAT_task(tasks{i}.A * 1, tasks{i}.J, ...
-                                               Qp, ydotbar, tasks{i}.xdotbar, ...
-                                               1e-4, 0.01, 10);
+                    a = 1;
+                    
                 elseif is_in_curr
                     % Task is entering: Increasing activation
-                    [Qp, ydotbar] = iCAT_task(tasks{i}.A * obj.a_curr, tasks{i}.J, ...
-                                               Qp, ydotbar, tasks{i}.xdotbar, ...
-                                               1e-4, 0.01, 10);
+                    a = obj.a_curr;
+                  
                 elseif is_in_prev
                     % Task is leaving: Decreasing activation
-                    [Qp, ydotbar] = iCAT_task(tasks{i}.A * obj.a_prev, tasks{i}.J, ...
+                    a = obj.a_prev;
+                   
+                end
+                [Qp, ydotbar] = iCAT_task(tasks{i}.A * a, tasks{i}.J, ...
                                                Qp, ydotbar, tasks{i}.xdotbar, ...
                                                1e-4, 0.01, 10);
-                end
             end
 
             % 3. Last task: residual damping

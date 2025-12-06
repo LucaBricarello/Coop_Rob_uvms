@@ -36,38 +36,54 @@
 
 classdef TaskHorizontal < Task   
     properties
-        theta
-        n
+       theta;
+        n;
     end
 
 
     methods
         function updateReference(obj, robot)
-            % computing angle between v frame and w frame since v has to be
-            % horizontal wrt w
-            wRv = robot.wTv(1:3, 1:3);
-            [obj.n, obj.theta] = RotToAngleAxis(wRv);
+            rad_ref =0.2;
+            wTv = robot.wTv;
+            wRv = wTv(1:3,1:3);
+            vRw = wRv'; 
 
-            %dot_theta = 0.1 * (0.1 - obj.theta);
+            w_kw = [0,0,1]';
+            v_kv = [0,0,1]';
+            v_kw = vRw* w_kw;
 
-            %w_omega_v_w = wRv * robot.v_nu(4:6);
+            cos_ = v_kw' * v_kv;
+            sin_ = cross(v_kw,v_kv);
 
-            obj.xdotbar = 0.1 * (0.1 - obj.theta);
-            % limit the requested velocities...
+            if norm(sin_) < 1e-6
+                obj.n = [0;0;0];   
+            else
+                obj.n = sin_/norm(sin_);
+            end
+           
+            obj.theta = atan2(norm(sin_),cos_);
+            
+            obj.xdotbar = 0.3*(rad_ref - obj.theta);
+
             obj.xdotbar = Saturate(obj.xdotbar, 0.1);
+            disp("xdotbar");
+            disp(obj.xdotbar   );
         end
         function updateJacobian(obj, robot)
-            vJdw = [zeros(3,7), zeros(3), eye(3)];
 
-            wRv = robot.wTv(1:3, 1:3);
+            obj.J = [zeros(1,7),zeros(1,3), obj.n'*eye(3)];
+    
 
-            wJdw = wRv * vJdw;
-
-            obj.J = obj.n * wJdw;
         end
         
         function updateActivation(obj, robot)
-            obj.A = IncreasingBellShapedFunction(0.1,0.2,0,1,obj.theta);
+            % if  obj.theta >= 0
+            %     obj.A = IncreasingBellShapedFunction(0.1,0.2,0,1,obj.theta);
+            % else
+            %     obj.A = DecreasingBellShapedFunction(-0.2, -0.1, 0, 1, obj.theta);
+            % end
+            obj.A = IncreasingBellShapedFunction(0.1, 0.2, 0, 1, abs(obj.theta));
+
         end
     end
 end
