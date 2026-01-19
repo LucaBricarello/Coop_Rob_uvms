@@ -20,18 +20,17 @@ unity = UnityInterface("127.0.0.1");
 %task_vehicle = TaskVehicle();       
 %task_tool    = TaskTool();
 task_position        = TaskPosition();
-task_horizontal_1    = TaskHorizontal();
-task_horizontal_2    = TaskHorizontal();
-task_min_altitude    = TaskMinAltitudeV2();
+task_horizontal    = TaskHorizontal();
+task_min_altitude    = TaskMinAltitude();
 task_land            = TaskLand();
-task_attitude        = TaskAttitudeV2();
+task_attitude        = TaskAttitude();
 task_stop_move       = TaskStopMove();
 
-move_to_point = {task_min_altitude, task_horizontal_1, task_position, task_attitude};
-land = {task_horizontal_1, task_land};
+move_to_point = {task_min_altitude, task_horizontal, task_position, task_attitude};
+land = {task_horizontal, task_land};
 manipulation = {task_stop_move};
 
-unified_task_list = {task_stop_move, task_min_altitude, task_horizontal_1, task_land, task_position, task_attitude};
+unified_task_list = {task_stop_move, task_min_altitude, task_horizontal, task_land, task_position, task_attitude};
 
 % Define actions and add to ActionManager
 actionManager = ActionManager();

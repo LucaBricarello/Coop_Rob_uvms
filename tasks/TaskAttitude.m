@@ -1,37 +1,36 @@
 classdef TaskAttitude < Task   
     properties
-        theta
-        n
+        error % save it as scalar to avoid compatibility issues, if the error is a vector, do the norm
     end
-
 
     methods
         function updateReference(obj, robot)
-            % computing angle between v frame and w frame since v has to be
-            % horizontal wrt w
             wRv = robot.wTv(1:3, 1:3);
-            [obj.n, obj.theta] = RotToAngleAxis(wRv);
+            wRgv = robot.wTgv(1:3, 1:3);
+            
+            yaw_curr = atan2(wRv(2,1), wRv(1,1));
+            yaw_des  = atan2(wRgv(2,1), wRgv(1,1));
+            
+            raw_error = yaw_des - yaw_curr;
+            
+            true_yaw_error = atan2(sin(raw_error), cos(raw_error));
 
-            %dot_theta = 0.1 * (0.1 - obj.theta);
+            kp = 0.3; 
+            obj.xdotbar = kp * true_yaw_error;
 
-            %w_omega_v_w = wRv * robot.v_nu(4:6);
-
-            obj.xdotbar = 0.1 * (0.1 - obj.theta);
             % limit the requested velocities...
-            obj.xdotbar = Saturate(obj.xdotbar, 0.1);
+            obj.xdotbar = Saturate(obj.xdotbar, 0.2);
+
+            % save error to check when task is completed
+            obj.error = abs(true_yaw_error);
         end
+
         function updateJacobian(obj, robot)
-            vJdw = [zeros(3,7), zeros(3), eye(3)];
-
-            wRv = robot.wTv(1:3, 1:3);
-
-            wJdw = wRv * vJdw;
-
-            obj.J = obj.n * wJdw;
+            obj.J = [zeros(1,7), zeros(1,3), 0, 0, 1];
         end
         
         function updateActivation(obj, robot)
-            obj.A = IncreasingBellShapedFunction(0.1,0.2,0,1,obj.theta);
+            obj.A = 1;
         end
     end
 end
