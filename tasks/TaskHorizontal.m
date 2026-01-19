@@ -43,45 +43,43 @@ classdef TaskHorizontal < Task
 
     methods
         function updateReference(obj, robot)
-            rad_ref =0.2;
+
+            rad_ref = 0;
             wTv = robot.wTv;
             wRv = wTv(1:3,1:3);
-            vRw = wRv'; 
 
             w_kw = [0,0,1]';
             v_kv = [0,0,1]';
-            v_kw = vRw* w_kw;
+            w_kv = wRv * v_kv;
 
-            cos_ = v_kw' * v_kv;
-            sin_ = cross(v_kw,v_kv);
+            axis_world = cross(w_kw, w_kv);
 
-            if norm(sin_) < 1e-6
-                obj.n = [0;0;0];   
+            sin_theta = norm(axis_world);
+            cos_theta = w_kv' * w_kw; % scalar product
+
+            obj.theta = atan2(sin_theta, cos_theta);
+
+            if sin_theta < 1e-6
+                n_world = [0;0;1]; 
             else
-                obj.n = sin_/norm(sin_);
+                n_world = axis_world / sin_theta;
             end
-           
-            obj.theta = atan2(norm(sin_),cos_);
-            
-            obj.xdotbar = 0.3*(rad_ref - obj.theta);
+
+            obj.n = wRv' * n_world;
+
+            obj.xdotbar = 0.3 *(rad_ref - obj.theta);
 
             obj.xdotbar = Saturate(obj.xdotbar, 0.1);
-            disp("xdotbar");
-            disp(obj.xdotbar   );
         end
+
         function updateJacobian(obj, robot)
 
-            obj.J = [zeros(1,7),zeros(1,3), obj.n'*eye(3)];
-    
+            obj.J = [zeros(1,7), zeros(1,3), obj.n'*eye(3)];
 
         end
         
         function updateActivation(obj, robot)
-            % if  obj.theta >= 0
-            %     obj.A = IncreasingBellShapedFunction(0.1,0.2,0,1,obj.theta);
-            % else
-            %     obj.A = DecreasingBellShapedFunction(-0.2, -0.1, 0, 1, obj.theta);
-            % end
+
             obj.A = IncreasingBellShapedFunction(0.1, 0.2, 0, 1, abs(obj.theta));
 
         end

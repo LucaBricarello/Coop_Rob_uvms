@@ -4,11 +4,12 @@ addpath('./tools');
 addpath('./icat');
 addpath('./robust_robot');
 addpath('include');
+addpath('./tasks')
 clc; clear; close all;
 
 % Simulation parameters
 dt       = 0.05;
-endTime  = 50;
+endTime  = 100;
 % Initialize robot model and simulator
 robotModel = UvmsModel();          
 sim = UvmsSim(dt, robotModel, endTime);
@@ -23,37 +24,60 @@ task_horizontal_1    = TaskHorizontal();
 task_horizontal_2    = TaskHorizontal();
 task_min_altitude    = TaskMinAltitudeV2();
 task_land            = TaskLand();
-task_set = { task_horizontal_1, task_position};
-% task_set_2 = {task_horizontal_2, task_land};
-% unified_task1_list = {task_min_altitude, task_horizontal_1, task_horizontal_2, task_land, task_position};
+task_attitude        = TaskAttitudeV2();
+task_stop_move       = TaskStopMove();
+
+move_to_point = {task_min_altitude, task_horizontal_1, task_position, task_attitude};
+land = {task_horizontal_1, task_land};
+manipulation = {task_stop_move};
+
+unified_task_list = {task_stop_move, task_min_altitude, task_horizontal_1, task_land, task_position, task_attitude};
 
 % Define actions and add to ActionManager
 actionManager = ActionManager();
-actionManager.addAction(task_set, "safe navigation");  % action 1
-% actionManager.addAction(task_set_2, "landing");  % action 2
-% actionManager.addUnifiedList(unified_task_list);
+
+actionManager.addAction(move_to_point, "safe_navigation");
+actionManager.addAction(land, "safe_landing");
+actionManager.addAction(manipulation, "manipulation");
+
+actionManager.addUnifiedList(unified_task_list);
 
 % Define desired positions and orientations (world frame)
 w_arm_goal_position = [12.2025, 37.3748, -39.8860]';
 w_arm_goal_orientation = [0, pi, pi/2];
-w_vehicle_goal_position = [10.5 37.5 -38]';
-w_vehicle_goal_orientation = [0, 0, 0];
+w_vehicle_goal_position = [10.5 37.5 -36]'; % <--- CHANGE GOAL z=-38
+w_vehicle_goal_orientation = [0, -0.06, 0.5];
 
-% Set goals in the robot model
+% Set goals insss the robot model
 robotModel.setGoal(w_arm_goal_position, w_arm_goal_orientation, w_vehicle_goal_position, w_vehicle_goal_orientation);
 
 % Initialize the logger
-logger = SimulationLogger(ceil(endTime/dt)+1, robotModel, task_set);
+logger = SimulationLogger(ceil(endTime/dt)+1, robotModel, unified_task_list);
+
+switch_flag_1 = 0;
+switch_flag_2 = 0;
 
 % Main simulation loop
 for step = 1:sim.maxSteps
 
     % --------- Mission planning part -------------
-    % check if Action "safe navigation" task defining action error is lower
-    % then a certain threshold
-    % if task_position.error < 0.1
-    %     actionManager.setCurrentAction("landing");
-    % end
+    if strcmp(actionManager.actions_name{actionManager.currentAction}, "safe_navigation")
+        disp("action 1")
+        if (task_position.error < 0.01) & (task_attitude.error < 0.01) & (switch_flag_1 == 0)
+            actionManager.setCurrentAction("safe_landing");
+            switch_flag_1 = 1;
+        end
+    end
+    if strcmp(actionManager.actions_name{actionManager.currentAction}, "safe_landing")
+        disp("action 2")
+        if (task_land.error < 0.01) & (switch_flag_2 == 0)
+            actionManager.setCurrentAction("manipulation");
+            switch_flag_2 = 1;
+        end
+    end
+    if strcmp(actionManager.actions_name{actionManager.currentAction}, "manipulation")
+        disp("action 3")
+    end
     % ---------------------------------------------
     
     % print position on screen
@@ -63,7 +87,7 @@ for step = 1:sim.maxSteps
     robotModel.altitude = unity.receiveAltitude(robotModel);
 
     % 2. Compute control commands for current action
-    [v_nu, q_dot] = actionManager.computeICAT2(robotModel);
+    [v_nu, q_dot] = actionManager.computeICAT(robotModel, dt);
 
     % 3. Step the simulator (integrate velocities)
     sim.step(v_nu, q_dot);

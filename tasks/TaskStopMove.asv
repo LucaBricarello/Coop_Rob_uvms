@@ -1,0 +1,22 @@
+classdef TaskStopMo < Task   
+    properties
+        error % save it as scalar to avoid compatibility issues, if the error is a vector, do the norm
+    end
+
+    methods
+        function updateReference(obj, robot)
+            obj.xdotbar(1:6) = [0,0,0,0,0,0]'
+        end
+
+        function updateJacobian(obj, robot)
+            J_lin = [zeros(3,7), eye(3), zeros(3)];
+            J_ang = [zeros(3,7), zeros(3), eye(3)];
+
+            obj.J = [J_lin; J_ang];
+        end
+        
+        function updateActivation(obj, robot)
+            obj.A = eye(6);
+        end
+    end
+end

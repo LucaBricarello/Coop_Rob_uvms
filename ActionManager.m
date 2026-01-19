@@ -51,7 +51,12 @@ classdef ActionManager < handle
        end
 
 
-        function [v_nu, qdot] = computeICAT(obj, robot, dt)
+
+
+
+
+
+       function [v_nu, qdot] = computeICAT(obj, robot, dt)
             % Get current action
             tasks = obj.unified_list;
             tasks_curr_actions = obj.actions{obj.currentAction};
@@ -66,34 +71,11 @@ classdef ActionManager < handle
 
             % update time
             obj.time = obj.time + dt;
-            % compute a_curr and a_prev
+            % compute obj.a_curr and obj.a_prev
             if obj.currentAction ~= obj.previousAction
                 obj.a_curr = IncreasingBellShapedFunction(0, 1, 0, 1, obj.time);
                 obj.a_prev = DecreasingBellShapedFunction(0, 1, 0, 1, obj.time);
             end
-
-%            % 2. Perform ICAT (task-priority inverse kinematics)
-%            ydotbar = zeros(13,1);
-%            Qp = eye(13);
-%            for i = 1:length(tasks)
-%                disp(tasks(i))
-%                disp(tasks_curr_actions)
-%                if ismember(tasks(i), tasks_curr_actions) && ismember(tasks(i), tasks_prev_actions)
-%                    [Qp, ydotbar] = iCAT_task(tasks{i}.A * 1, tasks{i}.J, ...
-%                                               Qp, ydotbar, tasks{i}.xdotbar, ...
-%                                               1e-4, 0.01, 10);
-%
-%                elseif ismember(tasks(i), tasks_curr_actions)
-%                    [Qp, ydotbar] = iCAT_task(tasks{i}.A * obj.a_curr, tasks{i}.J, ...
-%                                               Qp, ydotbar, tasks{i}.xdotbar, ...
-%                                               1e-4, 0.01, 10);
-%
-%                elseif ismember(tasks(i), tasks_prev_actions)
-%                    [Qp, ydotbar] = iCAT_task(tasks{i}.A * obj.a_prev, tasks{i}.J, ...
-%                                               Qp, ydotbar, tasks{i}.xdotbar, ...
-%                                               1e-4, 0.01, 10);
-%                end
-%            end
 
             % 2. Perform ICAT (task-priority inverse kinematics)
             ydotbar = zeros(13,1);
@@ -107,25 +89,24 @@ classdef ActionManager < handle
                 % We iterate through the cells and compare handles using '=='
                 is_in_curr = any(cellfun(@(x) x == current_task_handle, tasks_curr_actions));
                 is_in_prev = any(cellfun(@(x) x == current_task_handle, tasks_prev_actions));
-                
-                a = 1;
+            
                 % 3. Apply logic based on booleans
+                % 3. Determine activation scalar
+                activation_scalar = 0;
                 if is_in_curr && is_in_prev
-                    % Task is in both: Full activation (or specific transition logic)
-                    a = 1;
-                    
+                    activation_scalar = 1;
                 elseif is_in_curr
-                    % Task is entering: Increasing activation
-                    a = obj.a_curr;
-                  
+                    activation_scalar = obj.a_curr;
                 elseif is_in_prev
-                    % Task is leaving: Decreasing activation
-                    a = obj.a_prev;
-                   
+                    activation_scalar = obj.a_prev;
                 end
-                [Qp, ydotbar] = iCAT_task(tasks{i}.A * a, tasks{i}.J, ...
-                                               Qp, ydotbar, tasks{i}.xdotbar, ...
+                
+                % 4. Apply ICAT if active
+                if activation_scalar > 0
+                    [Qp, ydotbar] = iCAT_task(current_task_handle.A * activation_scalar, current_task_handle.J, ...
+                                               Qp, ydotbar, current_task_handle.xdotbar, ...
                                                1e-4, 0.01, 10);
+                end
             end
 
             % 3. Last task: residual damping
@@ -135,6 +116,9 @@ classdef ActionManager < handle
             qdot = ydotbar(1:7);
             v_nu = ydotbar(8:13); % projected on the vehicle frame
         end
+
+
+
 
 
 
