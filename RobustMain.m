@@ -63,7 +63,7 @@ switch_flag_2 = 0;
 for step = 1:sim.maxSteps
 
     % --------- Mission planning part -------------
-    if strcmp(actionManager.actions_name{actionManager.currentAction}, "safe_navigation")
+    if strcmp(actionManager.actions_name{actionManager.currentAction}, "safe_navigation") % NOTE: WE MIGHT NEED TO CONSIDER THE EFFECT OF task_dist_v_to_obj TASK IF THE GOAL IS FAR FROM THE NODULE
         disp("action 1")
         if (task_position.error < 0.01) & (task_attitude.error < 0.01) & (switch_flag_1 == 0)
             actionManager.setCurrentAction("safe_landing");
