@@ -1,7 +1,9 @@
-classdef TaskHorizontal < Task   
+classdef TaskAllignToObj < Task   
     properties
        theta;
         n;
+
+        error;
     end
 
     methods
@@ -11,14 +13,20 @@ classdef TaskHorizontal < Task
             wTv = robot.wTv;
             wRv = wTv(1:3,1:3);
 
-            w_kw = [0,0,1]';
-            v_kv = [0,0,1]';
-            w_kv = wRv * v_kv;
+            % computing vector that connects robot origin with nodule frame origin (w_lin)
+            [w_ang, w_lin] = CartError(robot.wTg , robot.wTv); % where robot.wTg is the tool goal frame (so the nodule frame)
+            
+            % Projecting 3d vector on xy horizontal plane
+            w_lin(3) = 0;
 
-            axis_world = cross(w_kw, w_kv);
+            w_axisw = w_lin; % not transposed since it is already a 3x1 vector
+            v_iv = [1,0,0]';
+            w_iv = wRv * v_iv;
+
+            axis_world = cross(w_axisw, w_iv);
 
             sin_theta = norm(axis_world);
-            cos_theta = w_kv' * w_kw; % scalar product
+            cos_theta = w_iv' * w_axisw; % scalar product
 
             obj.theta = atan2(sin_theta, cos_theta);
 
@@ -33,6 +41,8 @@ classdef TaskHorizontal < Task
             obj.xdotbar = 0.3 *(rad_ref - obj.theta);
 
             obj.xdotbar = Saturate(obj.xdotbar, 0.1);
+
+            obj.error = rad_ref - obj.theta;
         end
 
         function updateJacobian(obj, robot)
