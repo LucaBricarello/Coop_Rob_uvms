@@ -6,17 +6,22 @@ classdef SimulationLogger < handle
         eta          % vehicle pose
         v_nu         % vehicle velocity
         a            % task activations (diagonal only)
+        a_combined   % task activations multiplied by action activation
         xdotbar_task % reference velocities for tasks (cell array)
         robot        % robot model
         task_set     % set of tasks
+        action_manager % reference to action manager
 
         error
     end
 
     methods
-        function obj = SimulationLogger(maxLoops, robotModel, task_set)
+        function obj = SimulationLogger(maxLoops, robotModel, task_set, action_manager)
             obj.robot = robotModel;
             obj.task_set = task_set;
+            if nargin > 3
+                obj.action_manager = action_manager;
+            end
 
             obj.t = zeros(1, maxLoops);
             obj.q = zeros(7, maxLoops);
@@ -29,6 +34,7 @@ classdef SimulationLogger < handle
             % Store the diagonal of each activation matrix
             maxDiagSize = max(cellfun(@(t) size(t.A,1), task_set));
             obj.a = zeros(maxDiagSize, maxLoops, length(task_set));
+            obj.a_combined = zeros(maxDiagSize, maxLoops, length(task_set));
 
             % Initialize cell array to store task reference velocities
             obj.xdotbar_task = cell(length(task_set), maxLoops);
@@ -50,6 +56,27 @@ classdef SimulationLogger < handle
                 diagA = diag(obj.task_set{i}.A);           % extract diagonal
                 obj.a(1:length(diagA), loop, i) = diagA;
                 obj.xdotbar_task{i, loop} = obj.task_set{i}.xdotbar;
+
+                % Calculate combined activation if action_manager is present
+                if ~isempty(obj.action_manager)
+                    current_task = obj.task_set{i};
+                    tasks_curr_actions = obj.action_manager.actions{obj.action_manager.currentAction};
+                    tasks_prev_actions = obj.action_manager.actions{obj.action_manager.previousAction};
+                    
+                    is_in_curr = any(cellfun(@(x) x == current_task, tasks_curr_actions));
+                    is_in_prev = any(cellfun(@(x) x == current_task, tasks_prev_actions));
+                    
+                    activation_scalar = 0;
+                    if is_in_curr && is_in_prev
+                        activation_scalar = 1;
+                    elseif is_in_curr
+                        activation_scalar = obj.action_manager.a_curr;
+                    elseif is_in_prev
+                        activation_scalar = obj.action_manager.a_prev;
+                    end
+                    
+                    obj.a_combined(1:length(diagA), loop, i) = diagA * activation_scalar;
+                end
             end
         end
 
@@ -86,6 +113,17 @@ classdef SimulationLogger < handle
             figure(4);
             plot(obj.t, obj.error, 'LineWidth', 1);
             legend('x','y','z','roll','pitch','yaw');
+
+            % Plot combined task activations
+            if ~isempty(obj.action_manager)
+                figure(5);
+                for i = 1:size(obj.a_combined,3)
+                    subplot(size(obj.a_combined,3),1,i);
+                    plot(obj.t, squeeze(obj.a_combined(:, :, i))', 'LineWidth', 1);
+                    title(['Task ', num2str(i), ' Combined Activation']);
+                    grid on;
+                end
+            end
         end
     end
 end

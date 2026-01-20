@@ -74,6 +74,7 @@ classdef UvmsModel < handle
             %obj.eta    = [10.5 35.5 -36 0 0 pi/2]';
             obj.eta    = [10.5 35.5 -36 -pi/3 pi/3 pi/2]';
             % obj.eta    = [48.5 -11.5 -33 -pi/3 pi/3 pi/2]';
+            obj.eta    = [10.5 35.5 -36 pi pi/3 pi/2]';
 
             % Default limits
             obj.jlmin  = [-2.9;-1.6;-2.9;-2.95;-2.9;-1.65;-2.8];

@@ -53,7 +53,7 @@ classdef TaskAllignToObj < Task
         
         function updateActivation(obj, robot)
 
-            obj.A = IncreasingBellShapedFunction(0.1, 0.2, 0, 1, abs(obj.theta));
+            obj.A = 1;
 
         end
     end

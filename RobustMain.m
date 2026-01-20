@@ -29,11 +29,11 @@ task_allign_to_obj   = TaskAllignToObj();
 task_dist_v_to_obj   = TaskDistVehicleToNodule();
 task_tool            = TaskTool();
 
-move_to_point = {task_min_altitude, task_horizontal, task_position, task_attitude, task_dist_v_to_obj};
-land = {task_horizontal, task_land, task_allign_to_obj, task_dist_v_to_obj};
+move_to_point = {task_min_altitude, task_horizontal, task_position, task_attitude};
+land = {task_horizontal, task_dist_v_to_obj, task_land, task_allign_to_obj};
 manipulation = {task_stop_move, task_tool};
 
-unified_task_list = {task_stop_move, task_min_altitude, task_horizontal, task_land, task_position, task_attitude, task_allign_to_obj, task_tool,1 task_dist_v_to_obj};
+unified_task_list = {task_stop_move, task_min_altitude, task_horizontal, task_dist_v_to_obj, task_land, task_position, task_attitude, task_allign_to_obj, task_tool};
 
 % Define actions and add to ActionManager
 actionManager = ActionManager();
@@ -47,14 +47,14 @@ actionManager.addUnifiedList(unified_task_list);
 % Define desired positions and orientations (world frame)
 w_arm_goal_position = [12.2025, 37.3748, -39.8860]'; % <--- NODULE FRAME ??? (is stored in wTg)
 w_arm_goal_orientation = [0, pi, pi/2];
-w_vehicle_goal_position = [10.5 37.5 -36]'; % <--- CHANGE GOAL z=-38 (is stored in wTgv)
+w_vehicle_goal_position = [10.5 38.5 -36]'; % <--- CHANGE GOAL z=-38 (is stored in wTgv)
 w_vehicle_goal_orientation = [0, -0.06, 0.5];
 
 % Set goals insss the robot model
 robotModel.setGoal(w_arm_goal_position, w_arm_goal_orientation, w_vehicle_goal_position, w_vehicle_goal_orientation);
 
 % Initialize the logger
-logger = SimulationLogger(ceil(endTime/dt)+1, robotModel, unified_task_list);
+logger = SimulationLogger(ceil(endTime/dt)+1, robotModel, unified_task_list, actionManager);
 
 switch_flag_1 = 0;
 switch_flag_2 = 0;
@@ -63,7 +63,7 @@ switch_flag_2 = 0;
 for step = 1:sim.maxSteps
 
     % --------- Mission planning part -------------
-    if strcmp(actionManager.actions_name{actionManager.currentAction}, "safe_navigation") % NOTE: WE MIGHT NEED TO CONSIDER THE EFFECT OF task_dist_v_to_obj TASK IF THE GOAL IS FAR FROM THE NODULE
+    if strcmp(actionManager.actions_name{actionManager.currentAction}, "safe_navigation")
         disp("action 1")
         if (task_position.error < 0.01) & (task_attitude.error < 0.01) & (switch_flag_1 == 0)
             actionManager.setCurrentAction("safe_landing");
