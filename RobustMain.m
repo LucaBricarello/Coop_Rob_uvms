@@ -65,7 +65,7 @@ for step = 1:sim.maxSteps
     % --------- Mission planning part -------------
     if strcmp(actionManager.actions_name{actionManager.currentAction}, "safe_navigation")
         disp("action 1")
-        if (task_position.error < 0.01) & (task_attitude.error < 0.01) & (switch_flag_1 == 0)
+        if (task_position.error < 0.01) & (switch_flag_1 == 0) % (task_attitude.error < 0.01) & (switch_flag_1 == 0)
             actionManager.setCurrentAction("safe_landing");
             switch_flag_1 = 1;
         end

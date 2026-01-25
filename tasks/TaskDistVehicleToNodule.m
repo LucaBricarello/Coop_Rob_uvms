@@ -9,7 +9,7 @@ classdef TaskDistVehicleToNodule < Task
             [w_ang, w_lin] = CartError(robot.wTg , robot.wTv);
 
             w_lin_xy = w_lin(1:2); % analysing only the distance on the xy plane since we may want to navigate higher and then land near the object
-            
+
             obj.error = norm(w_lin_xy);
             disp(obj.error)
 
@@ -19,7 +19,7 @@ classdef TaskDistVehicleToNodule < Task
             n_w = w_lin/norm(w_lin);
             obj.n = wRv' * n_w;
 
-            obj.xdotbar = -0.2 * obj.error;
+            obj.xdotbar = - 0.2 * obj.error;
             % limit the requested velocities...
             obj.xdotbar(1) = Saturate(obj.xdotbar(1), 0.2);
         end
