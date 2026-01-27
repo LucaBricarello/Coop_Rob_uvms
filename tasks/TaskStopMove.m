@@ -4,6 +4,7 @@ classdef TaskStopMove < Task
     end
 
     methods
+
         function updateReference(obj, robot)
             obj.xdotbar = zeros(6,1);
         end

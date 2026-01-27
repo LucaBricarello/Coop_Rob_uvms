@@ -1,18 +1,22 @@
 classdef TaskLand < Task   
     properties
         error
+
+        ref_distance = 0;
     end
 
     methods
+        function obj = TaskLand(ref)
+            obj.ref_distance = ref;
+        end
+        
         function updateReference(obj, robot)
-
-            ref_distance = 0;
             
             if isempty(robot.altitude)
                 fake_altitude = 3;
-                distance_error = ref_distance - fake_altitude;
+                distance_error = obj.ref_distance - fake_altitude;
             else
-                distance_error = ref_distance - robot.altitude;
+                distance_error = obj.ref_distance - robot.altitude;
             end
 
             obj.xdotbar = 0.2 * distance_error;

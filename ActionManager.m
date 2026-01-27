@@ -48,7 +48,7 @@ classdef ActionManager < handle
              Qp = eye(13);
              
              for i = 1:length(tasks)
-                 % 1. Extract the current task object handle (use curly braces)
+                 % 1. Extract the current task object handle
                  current_task_handle = tasks{i}; 
                  
                  % 2. Check if this handle exists in the current or previous action lists
@@ -65,6 +65,14 @@ classdef ActionManager < handle
                      activation_scalar = obj.a_curr;
                  elseif is_in_prev
                      activation_scalar = obj.a_prev;
+                 end
+
+                 if 1 == 1 % TASK STOP MOVE
+                    if is_in_curr
+                        activation_scalar = 1;
+                    elseif is_in_prev && ~is_in_curr
+                        activation_scalar = 0;
+                    end
                  end
                  
                  % 4. Apply ICAT if active

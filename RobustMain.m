@@ -9,7 +9,7 @@ clc; clear; close all;
 
 % Simulation parameters
 dt       = 0.05;
-endTime  = 100;
+endTime  = 120;
 % Initialize robot model and simulator
 robotModel = UvmsModel();          
 sim = UvmsSim(dt, robotModel, endTime);
@@ -22,7 +22,8 @@ unity = UnityInterface("127.0.0.1");
 task_position        = TaskPosition();
 task_horizontal      = TaskHorizontal();
 task_min_altitude    = TaskMinAltitude();
-task_land            = TaskLand();
+task_pre_land        = TaskLand(1);
+task_land            = TaskLand(0);
 task_attitude        = TaskAttitude();
 task_stop_move       = TaskStopMove();
 task_allign_to_obj   = TaskAllignToObj();
@@ -30,15 +31,17 @@ task_dist_v_to_obj   = TaskDistVehicleToNodule();
 task_tool            = TaskTool();
 
 move_to_point = {task_min_altitude, task_horizontal, task_position, task_attitude};
+pre_land = {task_horizontal, task_dist_v_to_obj, task_pre_land, task_allign_to_obj};
 land = {task_horizontal, task_dist_v_to_obj, task_land, task_allign_to_obj};
 manipulation = {task_stop_move, task_tool};
 
-unified_task_list = {task_stop_move, task_min_altitude, task_horizontal, task_dist_v_to_obj, task_land, task_position, task_attitude, task_allign_to_obj, task_tool};
+unified_task_list = {task_stop_move, task_min_altitude, task_horizontal, task_dist_v_to_obj, task_pre_land, task_land, task_allign_to_obj, task_position, task_attitude, task_tool};
 
 % Define actions and add to ActionManager
 actionManager = ActionManager();
 
 actionManager.addAction(move_to_point, "safe_navigation");
+actionManager.addAction(pre_land, "pre_landing");
 actionManager.addAction(land, "safe_landing");
 actionManager.addAction(manipulation, "manipulation");
 
@@ -58,6 +61,7 @@ logger = SimulationLogger(ceil(endTime/dt)+1, robotModel, unified_task_list, act
 
 switch_flag_1 = 0;
 switch_flag_2 = 0;
+switch_flag_3 = 0;
 
 % Main simulation loop
 for step = 1:sim.maxSteps
@@ -66,19 +70,26 @@ for step = 1:sim.maxSteps
     if strcmp(actionManager.actions_name{actionManager.currentAction}, "safe_navigation")
         disp("action 1")
         if (task_position.error < 0.01) & (switch_flag_1 == 0) % (task_attitude.error < 0.01) & (switch_flag_1 == 0)
-            actionManager.setCurrentAction("safe_landing");
+            actionManager.setCurrentAction("pre_landing");
             switch_flag_1 = 1;
         end
     end
-    if strcmp(actionManager.actions_name{actionManager.currentAction}, "safe_landing")
+    if strcmp(actionManager.actions_name{actionManager.currentAction}, "pre_landing")
         disp("action 2")
-        if (task_land.error < 0.01) & (task_allign_to_obj.error < 0.01) & (switch_flag_2 == 0)
-            actionManager.setCurrentAction("manipulation");
+        if (task_pre_land.error < 0.01) & (task_allign_to_obj.error < 0.01) & (switch_flag_2 == 0)
+            actionManager.setCurrentAction("safe_landing");
             switch_flag_2 = 1;
         end
     end
-    if strcmp(actionManager.actions_name{actionManager.currentAction}, "manipulation")
+    if strcmp(actionManager.actions_name{actionManager.currentAction}, "safe_landing")
         disp("action 3")
+        if (task_land.error < 0.01) & (switch_flag_3 == 0)
+            actionManager.setCurrentAction("manipulation");
+            switch_flag_3 = 1;
+        end
+    end
+    if strcmp(actionManager.actions_name{actionManager.currentAction}, "manipulation")
+        disp("action 4")
     end
     % ---------------------------------------------
     
