@@ -17,8 +17,6 @@ sim = UvmsSim(dt, robotModel, endTime);
 unity = UnityInterface("127.0.0.1");
 
 % Define tasks
-%task_vehicle = TaskVehicle();       
-%task_tool    = TaskTool();
 task_position        = TaskPosition();
 task_horizontal      = TaskHorizontal();
 task_min_altitude    = TaskMinAltitude();
