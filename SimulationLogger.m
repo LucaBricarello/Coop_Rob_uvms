@@ -147,30 +147,39 @@ classdef SimulationLogger < handle
                 set(gcf, 'Color', 'w');
                 for i = 1:size(obj.a_combined,3)
                     subplot(ceil(size(obj.a_combined,3)/2),2,i);
-                    plot(obj.t, squeeze(obj.a_combined(:, :, i))', 'LineWidth', 1);
+                    if i == 1
+                        plot(obj.t, squeeze(obj.a_combined(:, :, i))', 'LineWidth', 1);
+                        title('Task Stop Move');
+                    elseif i == 2
+                        plot(obj.t, squeeze(obj.a_combined(1, :, i))', 'LineWidth', 1);
+                        title('Task Min Altitude');
+                        ylim([0, 1]);
+                    elseif i == 3
+                        plot(obj.t, squeeze(obj.a_combined(1, :, i))', 'LineWidth', 1);
+                        title('Task Horizontal Attitude');
+                    elseif i == 4
+                        plot(obj.t, squeeze(obj.a_combined(1, :, i))', 'LineWidth', 1);
+                        title('Task Dist to Obj');
+                    elseif i == 5
+                        plot(obj.t, squeeze(obj.a_combined(1, :, i))', 'LineWidth', 1);
+                        title('Task Land');
+                    elseif i == 6
+                        plot(obj.t, squeeze(obj.a_combined(1:3, :, i))', 'LineWidth', 1);
+                        title('Task Allign to Obj');
+                    elseif i == 7
+                        plot(obj.t, squeeze(obj.a_combined(1:3, :, i))', 'LineWidth', 1);
+                        title('Task Position');
+                    elseif i == 8
+                        plot(obj.t, squeeze(obj.a_combined(1:3, :, i))', 'LineWidth', 1);
+                        title('Task Orientation');
+                    elseif i == 9
+                        plot(obj.t, squeeze(obj.a_combined(:, :, i))', 'LineWidth', 1);
+                        title('Task Tool');
+                    end
                     xline(0, '-r', 'A1'); 
                     xline(obj.t_switch_1, '-r', 'A2'); 
                     xline(obj.t_switch_2, '-r', 'A3');
                     xline(obj.t_switch_3, '-r', 'A4');
-                    if i == 1
-                        title('Task Stop Move');
-                    elseif i == 2
-                        title('Task Min Altitude');
-                    elseif i == 3
-                        title('Task Horizontal Attitude');
-                    elseif i == 4
-                        title('Task Dist to Obj');
-                    elseif i == 5
-                        title('Task Land');
-                    elseif i == 6
-                        title('Task Allign to Obj');
-                    elseif i == 7
-                        title('Task Position');
-                    elseif i == 8
-                        title('Task Orientation');
-                    elseif i == 9
-                        title('Task Tool');
-                    end
                     xlabel('Time [s]'); ylabel('Act [0,1]');
                     grid on;
                 end
@@ -182,7 +191,7 @@ classdef SimulationLogger < handle
             sgtitle('Min Altitude Task Analysis');
 
             subplot(1,2,1);
-            plot(obj.t, squeeze(obj.a_combined(:, :, 2))', 'LineWidth', 1);
+            plot(obj.t, squeeze(obj.a(1, :, 2))', 'LineWidth', 1);
             title('Task Min Altitude Activation');
             xlabel('Time [s]'); ylabel('Activation [0-1]');
             grid on;
@@ -190,9 +199,11 @@ classdef SimulationLogger < handle
             subplot(1,2,2);
             plot(obj.t, obj.altitude, 'LineWidth', 1);
             yline(0.75, '--r', '0.75m');
+            yline(1.5, '--r', '1.5m');
+            yline(1.25, '--r', '1.25m');
             title('Robot Altitude');
             xlabel('Time [s]'); ylabel('Altitude [m]');
-            legend('Current Altitude', 'Min Limit');
+            legend('Current Altitude', 'Min Limit', 'Upper Activation Threshold', 'Lower Activation Threshold');
             grid on;
 
             % Horizontal Attitude Task Analysis
@@ -201,7 +212,7 @@ classdef SimulationLogger < handle
             sgtitle('Horizontal Attitude Task Analysis');
             
             subplot(1,2,1);
-            plot(obj.t, squeeze(obj.a_combined(:, :, 3))', 'LineWidth', 1);
+            plot(obj.t, squeeze(obj.a(1, :, 3))', 'LineWidth', 1);
             title('Task Horizontal Activation');
             xlabel('Time [s]'); ylabel('Activation [0-1]');
             grid on;
@@ -218,7 +229,7 @@ classdef SimulationLogger < handle
             sgtitle('Task Dist V to Obj Task Analysis');
 
             subplot(1,2,1);
-            plot(obj.t, squeeze(obj.a_combined(:, :, 4))', 'LineWidth', 1);
+            plot(obj.t, squeeze(obj.a(1, :, 4))', 'LineWidth', 1);
             title('Task Dist V to Obj Activation');
             xlabel('Time [s]'); ylabel('Activation [0-1]');
             grid on;
@@ -226,9 +237,10 @@ classdef SimulationLogger < handle
             subplot(1,2,2);
             plot(obj.t, obj.task_errors(4, :), 'LineWidth', 1);
             yline(1.8, '--r', '1.8m');
+            yline(1.5, '--r', '1.5m');
             title('Task Dist V to Obj Error');
             xlabel('Time [s]'); ylabel('Distance [m]');
-            legend('Distance Error', 'Activation Threshold');
+            legend('Distance Error', 'Upper Activation Threshold', 'Lower Activation Threshold');
             grid on;
         end
     end
