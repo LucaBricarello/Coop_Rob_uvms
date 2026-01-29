@@ -1,3 +1,7 @@
+% Luca Bricarello 5248168
+% Barbara Ratto 4952202
+% Negri Ravera Christian 5228863
+
 % Add paths
 addpath('./simulation_scripts');
 addpath('./tools');
