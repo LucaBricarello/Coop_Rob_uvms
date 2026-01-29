@@ -30,6 +30,10 @@ classdef TaskAllignToObj < Task
 
             w_i_v = wRv * v_i_v;
 
+            if norm(w_d) < 1e-7
+                return;
+            end
+
             w_nd = w_d / norm(w_d);
 
             w_n = cross(w_i_v, w_nd);
