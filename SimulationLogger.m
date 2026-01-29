@@ -161,11 +161,11 @@ classdef SimulationLogger < handle
                         plot(obj.t, squeeze(obj.a_combined(1, :, i))', 'LineWidth', 1);
                         title('Task Dist to Obj');
                     elseif i == 5
-                        plot(obj.t, squeeze(obj.a_combined(1, :, i))', 'LineWidth', 1);
-                        title('Task Land');
-                    elseif i == 6
                         plot(obj.t, squeeze(obj.a_combined(1:3, :, i))', 'LineWidth', 1);
                         title('Task Allign to Obj');
+                    elseif i == 6
+                        plot(obj.t, squeeze(obj.a_combined(1, :, i))', 'LineWidth', 1);
+                        title('Task Land');
                     elseif i == 7
                         plot(obj.t, squeeze(obj.a_combined(1:3, :, i))', 'LineWidth', 1);
                         title('Task Position');
@@ -198,12 +198,12 @@ classdef SimulationLogger < handle
 
             subplot(1,2,2);
             plot(obj.t, obj.altitude, 'LineWidth', 1);
+            yline(1.5, '--g', '1.5m');
+            yline(1.1, '--b', '1.1m');
             yline(0.75, '--r', '0.75m');
-            yline(1.5, '--r', '1.5m');
-            yline(1.25, '--r', '1.25m');
             title('Robot Altitude');
             xlabel('Time [s]'); ylabel('Altitude [m]');
-            legend('Current Altitude', 'Min Limit', 'Upper Activation Threshold', 'Lower Activation Threshold');
+            legend('Current Altitude', 'Upper Activation Threshold', 'Lower Activation Threshold', 'Min Limit');
             grid on;
 
             % Horizontal Attitude Task Analysis
@@ -229,15 +229,17 @@ classdef SimulationLogger < handle
             sgtitle('Task Dist V to Obj Task Analysis');
 
             subplot(1,2,1);
-            plot(obj.t, squeeze(obj.a(1, :, 4))', 'LineWidth', 1);
+            plot(obj.t, squeeze(obj.a_combined(1, :, 4))', 'LineWidth', 1);
             title('Task Dist V to Obj Activation');
+            xline(obj.t_switch_1, '-r', 'A2'); 
             xlabel('Time [s]'); ylabel('Activation [0-1]');
             grid on;
             
             subplot(1,2,2);
             plot(obj.t, obj.task_errors(4, :), 'LineWidth', 1);
-            yline(1.8, '--r', '1.8m');
+            yline(1.8, '--b', '1.8m');
             yline(1.5, '--r', '1.5m');
+            xline(obj.t_switch_1, '-r', 'A2'); 
             title('Task Dist V to Obj Error');
             xlabel('Time [s]'); ylabel('Distance [m]');
             legend('Distance Error', 'Upper Activation Threshold', 'Lower Activation Threshold');

@@ -6,8 +6,8 @@ classdef TaskMinAltitude < Task
     methods
         function updateReference(obj, robot)
 
-            % since minimum is for us 0.75 we select 1 as reference
-            ref_distance = 1;
+            % since minimum is for us 0.75 we select 1.5 as reference
+            ref_distance = 1.5;
             
             if isempty(robot.altitude)
                 fake_altitude = 3;
@@ -35,9 +35,9 @@ classdef TaskMinAltitude < Task
         
         function updateActivation(obj, robot)
             if isempty(robot.altitude)
-                obj.A = DecreasingBellShapedFunction(1.25, 1.5, 0, 1, 3);
+                obj.A = DecreasingBellShapedFunction(1.1, 1.5, 0, 1, 3);
             else
-                obj.A = DecreasingBellShapedFunction(1.25, 1.5, 0, 1, robot.altitude);
+                obj.A = DecreasingBellShapedFunction(1.1, 1.5, 0, 1, robot.altitude);
             end
         end
     end

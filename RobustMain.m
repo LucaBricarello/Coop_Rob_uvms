@@ -9,7 +9,7 @@ clc; clear; close all;
 
 % Simulation parameters
 dt       = 0.05;
-endTime  = 90;
+endTime  = 130;
 % Initialize robot model and simulator
 robotModel = UvmsModel();          
 sim = UvmsSim(dt, robotModel, endTime);
@@ -29,10 +29,10 @@ task_tool            = TaskTool();
 
 move_to_point = {task_min_altitude, task_horizontal, task_position, task_orientation};
 pre_land = {task_horizontal, task_dist_v_to_obj, task_allign_to_obj};
-land = {task_horizontal, task_dist_v_to_obj, task_land, task_allign_to_obj};
+land = {task_horizontal, task_dist_v_to_obj, task_allign_to_obj, task_land};
 manipulation = {task_stop_move, task_tool};
 
-unified_task_list = {task_stop_move, task_min_altitude, task_horizontal, task_dist_v_to_obj, task_land, task_allign_to_obj, task_position, task_orientation, task_tool};
+unified_task_list = {task_stop_move, task_min_altitude, task_horizontal, task_dist_v_to_obj, task_allign_to_obj, task_land, task_position, task_orientation, task_tool};
 
 % Define actions and add to ActionManager
 actionManager = ActionManager();
