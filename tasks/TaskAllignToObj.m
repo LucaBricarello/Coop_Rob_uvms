@@ -53,11 +53,10 @@ classdef TaskAllignToObj < Task
             obj.xdotbar = - 0.3 * (obj.theta * obj.v_n);
             %obj.xdotbar = - 0.4 * obj.theta;
 
-            obj.xdotbar = Saturate(obj.xdotbar, 0.15);
+            obj.xdotbar = Saturate(obj.xdotbar, 0.2);
 
             obj.error = norm(obj.theta * obj.v_n);
             %obj.error = obj.theta;
-            disp(obj.error)
         end
 
         function updateJacobian(obj, robot)

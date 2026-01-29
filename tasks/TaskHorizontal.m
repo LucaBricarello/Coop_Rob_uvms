@@ -1,7 +1,8 @@
 classdef TaskHorizontal < Task   
     properties
-       theta;
+        theta;
         n;
+        error
     end
 
     methods
@@ -30,7 +31,9 @@ classdef TaskHorizontal < Task
 
             obj.n = wRv' * n_world;
 
-            obj.xdotbar = 0.3 *(rad_ref - obj.theta);
+            obj.error = (rad_ref - obj.theta);
+
+            obj.xdotbar = 0.3 * (rad_ref - obj.theta);
 
             obj.xdotbar = Saturate(obj.xdotbar, 0.1);
         end

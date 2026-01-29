@@ -1,4 +1,4 @@
-classdef TaskAttitude < Task   
+classdef TaskOrientation < Task   
     properties
         error % save it as scalar to avoid compatibility issues, if the error is a vector, do the norm
     end

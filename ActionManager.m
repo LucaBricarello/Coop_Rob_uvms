@@ -67,7 +67,7 @@ classdef ActionManager < handle
                      activation_scalar = obj.a_prev;
                  end
 
-                 if 1 == 1 % TASK STOP MOVE
+                 if i == 1 % TASK STOP MOVE
                     if is_in_curr
                         activation_scalar = 1;
                     elseif is_in_prev && ~is_in_curr
