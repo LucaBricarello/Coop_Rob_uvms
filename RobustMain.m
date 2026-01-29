@@ -13,7 +13,7 @@ clc; clear; close all;
 
 % Simulation parameters
 dt       = 0.05;
-endTime  = 130;
+endTime  = 90;
 % Initialize robot model and simulator
 robotModel = UvmsModel();          
 sim = UvmsSim(dt, robotModel, endTime);

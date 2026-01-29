@@ -65,7 +65,7 @@ classdef TaskAllignToObj < Task
             w_P = diag([1, 1, 0]);
             P_body = wRv' * w_P * wRv;
 
-            %obj.J = obj.v_n' * [zeros(3,7), -(1/norm(obj.v_d)^2)*skew(obj.v_d)*P_body, -eye(3)];
+            %obj.J = obj.v_n' * [zeros(3,7), -(1/norm(obj.v_d)^2)*skew(obj.v_d), -eye(3)];
 
             obj.J = (obj.v_n * obj.v_n' - (obj.theta/sin(obj.theta)) * skew([1;0;0]) * skew(obj.v_d/norm(obj.v_d)) * (eye(3) - (obj.v_n * obj.v_n'))) * [zeros(3,7), -(1/norm(obj.v_d)^2)*skew(obj.v_d)* P_body, -eye(3)];
 
