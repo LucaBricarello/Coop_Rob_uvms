@@ -32,7 +32,7 @@ task_dist_v_to_obj   = TaskDistVehicleToNodule();
 task_tool            = TaskTool();
 
 move_to_point = {task_min_altitude, task_horizontal, task_position, task_orientation};
-pre_land = {task_horizontal, task_dist_v_to_obj, task_allign_to_obj};
+pre_land = {task_min_altitude, task_horizontal, task_dist_v_to_obj, task_allign_to_obj};
 land = {task_horizontal, task_dist_v_to_obj, task_allign_to_obj, task_land};
 manipulation = {task_stop_move, task_tool};
 
@@ -53,7 +53,7 @@ w_arm_goal_position = [12.2025, 37.3748, -39.8860]'; % <--- NODULE FRAME (is sto
 w_arm_goal_orientation = [0, pi, pi/2];
 w_vehicle_goal_position = [10.5 38.5 -38]'; % (is stored in wTgv)
 %w_vehicle_goal_position = [10.5 38.5 -39.8860]'; % Goal per min alt test
-%w_vehicle_goal_position = [6.5 40.5 -38]'; % Goal dist v to obj test
+w_vehicle_goal_position = [6.5 40.5 -38]'; % Goal dist v to obj test
 w_vehicle_goal_orientation = [0, -0.06, 0.5];
 
 % Set goals insss the robot model

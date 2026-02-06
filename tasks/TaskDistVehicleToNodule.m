@@ -24,7 +24,11 @@ classdef TaskDistVehicleToNodule < Task
         end
 
         function updateJacobian(obj, robot)
-            obj.J = [zeros(1,7), obj.n'*(-eye(3)), zeros(1,3)];
+            wRv = robot.wTv(1:3,1:3);
+            w_P = diag([1, 1, 0]);
+            P_body = wRv' * w_P * wRv;
+
+            obj.J = [zeros(1,7), obj.n'*(-eye(3))*P_body, zeros(1,3)];
         end
         
         function updateActivation(obj, robot)
